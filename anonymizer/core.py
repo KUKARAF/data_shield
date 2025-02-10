@@ -17,7 +17,7 @@ class Anonymizer:
         Initialize the anonymizer with specified filters.
 
         Args:
-            filters: List of filter names to apply (e.g., ["name", "date", "id"])
+            filters: List of filter names to apply (e.g., ["name", "id"])
             preserve_grammar: Whether to maintain grammatical correctness
         """
         self.preserve_grammar = preserve_grammar
@@ -63,7 +63,7 @@ class Anonymizer:
 
         # Process matches in order (longer matches first)
         result = text
-        # Sort filters to ensure consistent ordering (name > date > id)
+        # Sort filters to ensure consistent ordering (name > id)
         for filter_name in sorted(all_matches.keys()):
             for idx, match in enumerate(all_matches[filter_name], 1):
                 if not match or match in self._reverse_substitutions:

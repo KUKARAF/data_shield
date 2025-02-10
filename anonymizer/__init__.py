@@ -1,5 +1,6 @@
 """
 Text anonymization package using NLTK for grammatically correct substitutions.
+Supports name and ID anonymization with extensible filter system.
 """
 from anonymizer.core import Anonymizer
 from anonymizer.base import BaseFilter
