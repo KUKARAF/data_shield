@@ -7,16 +7,30 @@ def test_name_filter():
     filter = NameFilter()
 
     text = """
-    Drogi Panie Tadeuszu,
-    Pan Tadeusz jest ważny.
+    Dr. Jane Wilson
+    Pan Tadeusz
     Mr. John Smith and Professor Alice Johnson are collaborating.
     """
     names = filter.find(text)
 
-    assert "Panie Tadeuszu" in names
-    assert "Pan Tadeusz" in names
-    assert "Mr. John Smith" in names
-    assert "Professor Alice Johnson" in names
+    assert any(n['full'] == 'Dr. Jane Wilson' for n in names)
+    assert any(n['title'] == 'Dr.' and n['first'] == 'Jane' and n['last'] == 'Wilson' for n in names)
+    assert any(n['full'] == 'Pan Tadeusz' for n in names)
+    assert any(n['full'] == 'Mr. John Smith' for n in names)
+    assert any(n['full'] == 'Professor Alice Johnson' for n in names)
+
+def test_name_filter_components():
+    """Test name component detection."""
+    filter = NameFilter()
+
+    text = "Dr. John Smith Jr."
+    names = filter.find(text)
+
+    assert len(names) == 1
+    name = names[0]
+    assert name['title'] == 'Dr.'
+    assert name['first'] == 'John'
+    assert name['last'] == 'Smith Jr.'
 
 def test_id_filter():
     """Test ID detection."""

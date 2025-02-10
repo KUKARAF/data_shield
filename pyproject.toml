@@ -7,6 +7,8 @@ dependencies = [
     "anthropic>=0.45.2",
     "nltk==3.8.1",
     "numpy>=2.2.2",
+    "openai>=1.61.1",
     "pytest>=8.3.4",
     "trafilatura>=2.0.0",
+    "twilio>=9.4.4",
 ]

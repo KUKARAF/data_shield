@@ -18,19 +18,31 @@ def test_hide_personal_data():
     anon = Anonymizer()
 
     # Test with various data types
-    text = "Dear John Doe, your case 12345 is being processed"
+    text = "Dear Dr. John Doe, your case 12345 is being processed"
     anonymized = anon.hide_personal_data(text)
 
-    assert "<NAME_1>" in anonymized
+    assert "Dear Dr. <FIRST_NAME_1> <LAST_NAME_1>" in anonymized
     assert "<ID_1>" in anonymized
     assert "John Doe" not in anonymized
     assert "12345" not in anonymized
+
+def test_name_with_title():
+    """Test name anonymization with titles."""
+    anon = Anonymizer(filters=['name'])
+
+    text = "Dr. Jane Wilson wrote to Professor Smith"
+    anonymized = anon.hide_personal_data(text)
+
+    assert "Dr. <FIRST_NAME_1> <LAST_NAME_1>" in anonymized
+    assert "Professor <FIRST_NAME_2>" in anonymized
+    assert "Jane Wilson" not in anonymized
+    assert "Smith" not in anonymized
 
 def test_fill_personal_data():
     """Test restoration of personal data."""
     anon = Anonymizer()
 
-    original = "Dear John Doe, your case 12345 is important"
+    original = "Dear Dr. John Doe, your case 12345 is important"
     anonymized = anon.hide_personal_data(original)
     restored = anon.fill_personal_data(anonymized)
 
@@ -50,4 +62,14 @@ def test_grammar_preservation():
     text = "I am a John Smith"
     anonymized = anon.hide_personal_data(text)
 
-    assert "a <NAME_1>" in anonymized
+    assert "a <FIRST_NAME_1> <LAST_NAME_1>" in anonymized
+
+def test_multiple_names():
+    """Test handling of multiple names in text."""
+    anon = Anonymizer(filters=['name'])
+
+    text = "Dr. Jane Wilson and Mr. Robert Brown had a meeting"
+    anonymized = anon.hide_personal_data(text)
+
+    assert "Dr. <FIRST_NAME_1> <LAST_NAME_1>" in anonymized
+    assert "Mr. <FIRST_NAME_2> <LAST_NAME_2>" in anonymized
