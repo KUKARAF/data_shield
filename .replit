@@ -49,12 +49,22 @@ args = """
 python3 -c \"
 from anonymizer.core import Anonymizer
 
-anon = Anonymizer()
-text = 'Dear John Smith, your case number ABC-123 has been processed by Dr. Jane Wilson.'
-anonymized = anon.hide_personal_data(text)
-restored = anon.fill_personal_data(anonymized)
-print('Anonymized:', anonymized)
-print('Restored:', restored)
+# Medical Records Example
+medical_record = '''
+Patient: Sarah Johnson
+ID: MED-2024-567
+Referring Doctor: Dr. Michael Brown
+Notes: Patient was referred by Dr. Brown on January 15th.
+'''
+
+anonymizer = Anonymizer()
+anonymized_record = anonymizer.hide_personal_data(medical_record)
+print('Original:', medical_record)
+print('
+Anonymized:', anonymized_record)
+restored = anonymizer.fill_personal_data(anonymized_record)
+print('
+Restored:', restored)
 \"
 """
 
