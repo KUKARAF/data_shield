@@ -15,6 +15,10 @@ author = "agent"
 task = "workflow.run"
 args = "Run Tests"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Test Anonymizer"
+
 [[workflows.workflow]]
 name = "Run Tests"
 author = "agent"
@@ -28,6 +32,31 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python -m pytest tests/ -v"
+
+[[workflows.workflow]]
+name = "Test Anonymizer"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = """
+python3 -c \"
+from anonymizer.core import Anonymizer
+
+anon = Anonymizer()
+text = 'Dear John Smith, your case number ABC-123 has been processed by Dr. Jane Wilson.'
+anonymized = anon.hide_personal_data(text)
+restored = anon.fill_personal_data(anonymized)
+print('Anonymized:', anonymized)
+print('Restored:', restored)
+\"
+"""
 
 [deployment]
 run = ["sh", "-c", "python -m pytest tests/ -v"]
