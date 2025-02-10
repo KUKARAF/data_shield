@@ -54,14 +54,25 @@ class Anonymizer:
         self._substitutions.clear()
         self._reverse_substitutions.clear()
 
-        # Process text with each filter
-        result = text
+        # First collect all matches from each filter
+        all_matches = {}
         for filter_name, filter_obj in self._filters.items():
-            matches = filter_obj.find(result)
-            for idx, match in enumerate(matches, 1):
+            matches = filter_obj.find(text)
+            if matches:
+                all_matches[filter_name] = sorted(matches, key=len, reverse=True)
+
+        # Process matches in order (longer matches first)
+        result = text
+        # Sort filters to ensure consistent ordering (name > date > id)
+        for filter_name in sorted(all_matches.keys()):
+            for idx, match in enumerate(all_matches[filter_name], 1):
+                if not match or match in self._reverse_substitutions:
+                    continue
+
                 placeholder = f"<{filter_name.upper()}_{idx}>"
                 self._substitutions[placeholder] = match
                 self._reverse_substitutions[match] = placeholder
+                # Replace all occurrences of this match
                 result = result.replace(match, placeholder)
 
         if self.preserve_grammar:
@@ -83,7 +94,14 @@ class Anonymizer:
             return text
 
         result = text
-        for placeholder, original in self._substitutions.items():
+        # Sort substitutions by length of placeholder (longest first)
+        # to avoid partial replacements
+        sorted_subs = sorted(
+            self._substitutions.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
+        for placeholder, original in sorted_subs:
             result = result.replace(placeholder, original)
 
         return result
@@ -98,24 +116,29 @@ class Anonymizer:
         Returns:
             Grammatically corrected text
         """
-        # Tokenize and tag the text
-        doc = nltk.word_tokenize(text)
-        tagged = nltk.pos_tag(doc)
+        try:
+            # Tokenize and tag the text
+            doc = nltk.word_tokenize(text)
+            tagged = nltk.pos_tag(doc)
 
-        result = text
-        for i, (word, tag) in enumerate(tagged):
-            if word.startswith('<') and word.endswith('>'):
-                # Adjust articles and prepositions
-                if i > 0:
-                    prev_word, prev_tag = tagged[i-1]
-                    if prev_word.lower() in ['a', 'an']:
-                        # Determine correct article based on pronunciation
-                        if self._starts_with_vowel_sound(word):
-                            result = result.replace(f"{prev_word} {word}", f"an {word}")
-                        else:
-                            result = result.replace(f"{prev_word} {word}", f"a {word}")
+            result = text
+            for i, (word, tag) in enumerate(tagged):
+                if word.startswith('<') and word.endswith('>'):
+                    # Adjust articles based on pronunciation
+                    if i > 0:
+                        prev_word, prev_tag = tagged[i-1]
+                        if prev_word.lower() in ['a', 'an']:
+                            # Determine correct article based on pronunciation
+                            if self._starts_with_vowel_sound(word):
+                                result = result.replace(f"{prev_word} {word}", f"an {word}")
+                            else:
+                                result = result.replace(f"{prev_word} {word}", f"a {word}")
 
-        return result
+            return result
+
+        except Exception as e:
+            print(f"Error in grammar correction: {str(e)}")
+            return text
 
     def _starts_with_vowel_sound(self, word: str) -> bool:
         """

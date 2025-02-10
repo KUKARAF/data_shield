@@ -5,7 +5,8 @@ description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.45.2",
-    "nltk>=3.9.1",
+    "nltk==3.8.1",
+    "numpy>=2.2.2",
     "pytest>=8.3.4",
     "trafilatura>=2.0.0",
 ]

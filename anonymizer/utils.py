@@ -16,19 +16,40 @@ def ensure_nltk_resources():
         'words'
     ]
 
-    # First, try direct downloads
+    # First verify and download core resources
     for resource in resources:
         try:
-            nltk.download(resource, quiet=True)
+            try:
+                nltk.data.find(f'tokenizers/{resource}' if resource == 'punkt'
+                              else f'taggers/{resource}' if 'tagger' in resource
+                              else f'chunkers/{resource}' if 'chunker' in resource
+                              else f'corpora/{resource}')
+            except LookupError:
+                print(f"Downloading NLTK resource: {resource}")
+                nltk.download(resource, quiet=True)
         except Exception as e:
             print(f"Failed to download NLTK resource {resource}: {e}")
             raise
 
-    # Verify the tagger is available
-    try:
-        nltk.data.find('taggers/averaged_perceptron_tagger')
-    except LookupError:
-        nltk.download('averaged_perceptron_tagger', quiet=True)
+    # Additional verification for critical resources
+    critical_resources = {
+        'taggers/averaged_perceptron_tagger': 'averaged_perceptron_tagger',
+        'tokenizers/punkt': 'punkt',
+        'chunkers/maxent_ne_chunker': 'maxent_ne_chunker',
+        'corpora/words': 'words'
+    }
+
+    for path, resource in critical_resources.items():
+        try:
+            nltk.data.find(path)
+        except LookupError:
+            print(f"Critical resource {resource} not found. Attempting download...")
+            nltk.download(resource, quiet=True)
+            # Verify download
+            try:
+                nltk.data.find(path)
+            except LookupError as e:
+                raise RuntimeError(f"Failed to download critical resource {resource}") from e
 
 def load_filters() -> Dict[str, BaseFilter]:
     """
